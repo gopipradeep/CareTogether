@@ -1,0 +1,66 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.orphans">
+
+    <application
+
+        android:allowBackup="true"
+        android:icon="@drawable/applogo"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/applogo"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Orphans"
+        tools:targetApi="31">
+
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- com.example.orphans.AuthActivity -->
+        <activity
+            android:name=".AuthActivity"
+            android:exported="true" />
+
+        <!-- DetailsActivity -->
+        <activity
+            android:name=".DetailsActivity"
+            android:exported="true" />
+
+        <!-- Google Sign-In activity -->
+        <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:exported="true"
+            tools:replace="android:exported" />
+
+        <activity
+            android:name=".DonorActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".OrganizationActivity"
+            android:exported="true" />
+        <activity
+            android:name=".SlumAreaReportActivity" />
+
+        <activity android:name=".AdminActivity" />
+
+    </application
+        >
+
+    <!-- Add permissions if required -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-sdk
+        tools:overrideLibrary="com.google.firebase.auth.ktx" />
+
+
+
+</manifest>

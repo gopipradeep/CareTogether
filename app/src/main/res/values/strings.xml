@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">CareTogether</string>
+
+    <string name="default_web_client_id">"USE YOU OWN CLIENT ID"</string>
+    <string-array name="user_roles">
+        <item>Organization</item>
+        <item>Donor</item>
+    </string-array>
+    <string-array name="districts_array">
+            <item>Alluri Sitharama Raju</item>
+            <item>Anakapalli</item>
+            <item>Ananthapuramu</item>
+            <item>Annamayya</item>
+            <item>Bapatla</item>
+            <item>Chittoor</item>
+            <item>Dr. B.R. Ambedkar Konaseema</item>
+            <item>East Godavari</item>
+            <item>Eluru</item>
+            <item>Guntur</item>
+            <item>Kakinada</item>
+            <item>Krishna</item>
+            <item>Kurnool</item>
+            <item>Nandyal</item>
+            <item>Ntr</item>
+            <item>Palnadu</item>
+            <item>Parvathipuram Manyam</item>
+            <item>Prakasam</item>
+            <item>Sri Potti Sriramulu Nellore</item>
+            <item>Sri Sathya Sai</item>
+            <item>Srikakulam</item>
+            <item>Tirupati</item>
+            <item>Visakhapatnam</item>
+            <item>Vizianagaram</item>
+            <item>West Godavari</item>
+            <item>Y.S.R.</item>
+        </string-array>
+    <string-array name="state_array">
+        <item>Andhra Pradesh</item>
+    </string-array>
+</resources>

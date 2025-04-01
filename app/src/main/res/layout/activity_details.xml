@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:background="@drawable/loginbackground1">
+        <TextView
+            android:text="Details Form "
+            android:gravity="center"
+            android:textSize="30sp"
+            android:layout_marginTop="45dp"
+            android:textStyle="bold|italic"
+            android:textColor="@color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/roleSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/spinner_background"
+            android:entries="@array/user_roles"
+            android:layout_marginTop="150dp"/>
+
+        <EditText
+            android:id="@+id/nameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_below="@id/roleSpinner"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/text_background"
+            android:hint="Name"
+            android:textColor="@color/black"
+            android:padding="10dp"
+            android:textStyle="bold"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/contactNumberEditText"
+            android:layout_width="match_parent"
+            android:layout_height="41dp"
+            android:layout_below="@id/nameEditText"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/text_background"
+            android:hint="Contact Number"
+            android:padding="10dp"
+            android:inputType="phone" />
+
+        <EditText
+            android:id="@+id/emailEditText"
+            android:layout_width="match_parent"
+            android:layout_height="41dp"
+            android:layout_below="@id/contactNumberEditText"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/text_background"
+            android:hint="Email"
+            android:padding="10dp"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/townEditText"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:layout_below="@id/emailEditText"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/text_background"
+            android:hint="Town"
+            android:padding="10dp"
+            android:inputType="text" />
+
+        <Spinner
+            android:id="@+id/districtSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:entries="@array/districts_array"
+            android:background="@drawable/spinner_background"
+            android:layout_below="@id/townEditText"
+            android:layout_marginTop="16dp"/>
+
+        <Spinner
+            android:id="@+id/stateSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:entries="@array/state_array"
+            android:background="@drawable/spinner_background"
+            android:layout_below="@id/districtSpinner"
+            android:layout_marginTop="16dp"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/stateSpinner"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/teal_200"
+            android:text="Save"/>
+
+    </RelativeLayout>
+</layout>

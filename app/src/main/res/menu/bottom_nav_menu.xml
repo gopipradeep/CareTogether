@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_orphanages"
+        android:icon="@drawable/ic_orphanages"
+        android:title="Orphanages" />
+    <item
+        android:id="@+id/navigation_slum_areas"
+        android:icon="@drawable/ic_slum_areas"
+        android:title="Slum Areas" />
+    <item
+        android:id="@+id/navigation_report_orphan"
+        android:icon="@drawable/ic_report_orphan"
+        android:title="Report" />
+    <item
+        android:id="@+id/navigation_feedback"
+        android:icon="@drawable/ic_feedback"
+        android:title="Feedback" />
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="Profile" />
+</menu>
