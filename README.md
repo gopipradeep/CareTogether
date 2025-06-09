@@ -1,6 +1,6 @@
 # CareTogether - Android App
 
-CareTogether is an Android application built to connect donors, volunteers, and organizations to help orphanages and children in need. The app provides an easy way to explore orphanages, raise support for slum areas, report needs, and offer feedback.
+CareTogether is an Android application built to connect donors, volunteers, and organizations to help orphanages and children in need. The app provides an easy way to explore orphanages, raise support for slum areas, report needs,report orphans and offer feedback.
 
 ## Features
 
@@ -8,6 +8,7 @@ CareTogether is an Android application built to connect donors, volunteers, and 
   - Orphanages
   - Slum Areas
   - Needs
+  - Report Orphans
   - Help/Feedback
 - 📍 Location search based on district and city .
 - 🔒 User authentication (Login, Signup) with role selection.
