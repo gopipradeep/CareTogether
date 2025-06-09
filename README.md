@@ -1,6 +1,6 @@
-# Empowering Orphans - Android App
+# CareTogether - Android App
 
-Empowering Orphans is an Android application built to connect donors, volunteers, and organizations to help orphanages and children in need. The app provides an easy way to explore orphanages, raise support for slum areas, report needs, and offer feedback.
+CareTogether is an Android application built to connect donors, volunteers, and organizations to help orphanages and children in need. The app provides an easy way to explore orphanages, raise support for slum areas, report needs, and offer feedback.
 
 ## Features
 
