@@ -27,10 +27,11 @@ CareTogether is an Android application built to connect donors and organizations
   - Gradle Kotlin DSL (`build.gradle.kts`)
 
 ## Project Structure
-
-Orphans2/ ├── app/ 
-# Application source code ├── build.gradle.kts 
-# Project-level Gradle settings ├── settings.gradle.kts 
-# Module declaration ├── gradle/
-# Gradle wrapper └── local.properties
-# Local settings (e.g., SDK path)
+```
+Orphans2/
+├── app/ # Application source code 
+├── build.gradle.kts # Project-level Gradle settings 
+├── settings.gradle.kts# Module declaration 
+├── gradle/# Gradle wrapper 
+└── local.properties # Local settings (e.g., SDK path)
+```
