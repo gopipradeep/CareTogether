@@ -35,7 +35,7 @@ Orphans2/
 ├── gradle/# Gradle wrapper 
 └── local.properties # Local settings (e.g., SDK path)
 ```
-
+-----------------------------------------------------------------------------------------------------------------------------------------------
 **FOLLOW THESE STEPS TO SET UP AND ENABLE FULL FUNCTIONALITY OF FIREBASE AND GOOGLE SIGN-IN:**
 
 🔧** How to Add google-services.json & Web Client ID**
