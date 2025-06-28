@@ -38,28 +38,30 @@ Orphans2/
 -----------------------------------------------------------------------------------------------------------------------------------------------
 **FOLLOW THESE STEPS TO SET UP AND ENABLE FULL FUNCTIONALITY OF FIREBASE AND GOOGLE SIGN-IN:**
 
-🔧** How to Add google-services.json & Web Client ID**
+🔧 How to Add google-services.json & Web Client ID
 
-📥** Step 1: Get google-services.json**
-Go to Firebase Console.
+📥 ****Step 1: Get google-services.json****
+------------------------------------------------
+1.Go to Firebase Console.
 
-1.Select your project or create a new one.
+2.Select your project or create a new one.
 
-2.Click on Project Settings (gear icon).
+3.Click on Project Settings (gear icon).
 
-3.Under the General tab, scroll to Your apps section.
+4.Under the General tab, scroll to Your apps section.
 
-4.Click Add App and select Android.
+5.Click Add App and select Android.
 
-5.Enter your package name (e.g., com.example.orphans) and register the app.
+6.Enter your package name (e.g., com.example.orphans) and register the app.
 
-6.Download the google-services.json file.
+7.Download the google-services.json file.
 
-7.Place it in your project at:
+8.Place it in your project at:
 app/google-services.json
 
 
-🌐 **Step 2: Get Web Client ID**
+🌐 ****Step 2: Get Web Client ID****
+---------------------------------------------------
 1.From the Firebase Console, go to Project Settings > General.
 
 2.Scroll down to Your apps > Web App (or add a web app if none exists).
@@ -67,14 +69,16 @@ app/google-services.json
 3.Copy the Web Client ID listed under OAuth 2.0 client IDs.
 
 
-🛠** Step 3: Add to strings.xml**
+🛠 ****Step 3: Add to strings.xml****
+-----------------------------------------------------
 1.Open:
 app/src/main/res/values/strings.xml
 
 2.Add this line:
 <string name="default_web_client_id">YOUR_WEB_CLIENT_ID</string>
 
-✅** Step 4: Add Plugin & Sync**
+✅ ****Step 4: Add Plugin & Sync****
+------------------------------------------------------
 
 1.In your build.gradle files:
 Project-level build.gradle:
