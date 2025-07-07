@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">CareTogether</string>
 
-    <string name="default_web_client_id">"USE YOU OWN CLIENT ID"</string>
+    <string name="default_web_client_id">"USE YOUR OWN CLIENT ID"</string>
     <string-array name="user_roles">
         <item>Organization</item>
         <item>Donor</item>
