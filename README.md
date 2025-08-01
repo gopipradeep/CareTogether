@@ -1,91 +1,112 @@
-# CareTogether - Android App
+# 🤝 CareTogether - Android App
 
-CareTogether is an Android application built to connect donors and organizations to help orphanages and children in need. The app provides an easy way to explore orphanages, raise support for slum areas, report needs,report orphans and offer feedback.
+CareTogether is a purpose-driven Android application that bridges the gap between donors and orphanages, enabling support for children in need and slum areas. It offers streamlined features for reporting, connecting, and assisting with transparency and accessibility.
 
-## Features
+---
 
-- 🏠 Home Dashboard with four main sections:
+## 📲 Features
+
+- 🏠 **Home Dashboard** with quick access to:
   - Orphanages
   - Slum Areas
   - Needs
   - Report Orphans
   - Help/Feedback
-- 📍 Location search based on district and city .
-- 🔒 User authentication (Login, Signup) with role selection.
-- 🎨 Clean and user-friendly UI.
-- 📱 Firebase backend integration for user management.
-- 📋 Profile management for donors and organizations.
-- 📈 Future extension for API integrations (Yelp, Mapple APIs).
+- 📍 **Location-based search** by city and district
+- 🔐 **User authentication** (Login & Signup) with role selection (Donor or Organization)
+- 🧾 **Profile management** for both donors and organizations
+- 💬 **Feedback and Reporting System**
+- 🌐 Future support for APIs (Yelp, Mapple, etc.)
+- 🎨 Clean, user-friendly UI with Material Design
 
-## Tech Stack
+---
 
-- **Language:** Kotlin
-- **Backend:** Firebase Authentication & Firestore
+## 🛠 Tech Stack
+
+- **Language:** Kotlin  
+- **Backend:** Firebase Authentication & Firestore  
 - **Libraries/Tools:**
   - Android Jetpack (ViewBinding, Navigation)
   - Material Design Components
-  - Gradle Kotlin DSL (`build.gradle.kts`)
+  - Firebase SDKs
+  - Gradle Kotlin DSL
 
-## Project Structure
+---
+
+## 📁 Project Structure
 ```
 Orphans2/
-├── app/ # Application source code 
-├── build.gradle.kts # Project-level Gradle settings 
-├── settings.gradle.kts# Module declaration 
-├── gradle/# Gradle wrapper 
-└── local.properties # Local settings (e.g., SDK path)
+├── app/ # Main source code
+├── build.gradle.kts # Project-level Gradle config
+├── settings.gradle.kts # Module declarations
+├── gradle/ # Gradle wrapper files
+└── local.properties # Local SDK path
 ```
------------------------------------------------------------------------------------------------------------------------------------------------
-**FOLLOW THESE STEPS TO SET UP AND ENABLE FULL FUNCTIONALITY OF FIREBASE AND GOOGLE SIGN-IN:**
 
-🔧 How to Add google-services.json & Web Client ID
+---
 
-📥 ****Step 1: Get google-services.json****
-------------------------------------------------
-1.Go to Firebase Console.
+## 🔧 Firebase Setup (Required for Authentication & Google Sign-In)
 
-2.Select your project or create a new one.
+### 📥 Step 1: Add `google-services.json`
 
-3.Click on Project Settings (gear icon).
-
-4.Under the General tab, scroll to Your apps section.
-
-5.Click Add App and select Android.
-
-6.Enter your package name (e.g., com.example.orphans) and register the app.
-
-7.Download the google-services.json file.
-
-8.Place it in your project at:
+1. Go to [Firebase Console](https://console.firebase.google.com/).
+2. Create or select your project.
+3. Click ⚙️ **Project Settings** → **General**.
+4. Under **Your Apps**, click **Add App** → Select **Android**.
+5. Enter package name (e.g., `com.example.orphans`) and register.
+6. Download the `google-services.json` file.
+7. Place it inside:
 app/google-services.json
 
+---
 
-🌐 ****Step 2: Get Web Client ID****
----------------------------------------------------
-1.From the Firebase Console, go to Project Settings > General.
+### 🔐 Step 2: Add SHA-1 and SHA-256 Keys
 
-2.Scroll down to Your apps > Web App (or add a web app if none exists).
+1. In terminal, run:
+```bash
+./gradlew signingReport
+```
 
-3.Copy the Web Client ID listed under OAuth 2.0 client IDs.
+1.Copy SHA-1 and SHA-256 from debug variant.
 
+2.Go back to Firebase Console → Project Settings → General.
 
-🛠 ****Step 3: Add to strings.xml****
------------------------------------------------------
-1.Open:
-app/src/main/res/values/strings.xml
+3.Under your Android app, click ✎ and paste the SHA keys.
 
-2.Add this line:
+4.Click Save.
+
+🔄 Re-download google-services.json after this step and replace the old file.
+
+---
+
+### 🌐 Step 3: Get Web Client ID for Google Sign-In
+1.In Firebase Console → Project Settings → General.
+
+2.Scroll to Your apps → Web App (add one if needed).
+
+3.Copy the Web Client ID under OAuth 2.0 client IDs.
+
+---
+
+### 🛠 Step 4: Add Web Client ID to strings.xml
+```
+<!-- app/src/main/res/values/strings.xml -->
 <string name="default_web_client_id">YOUR_WEB_CLIENT_ID</string>
+```
+---
 
-✅ ****Step 4: Add Plugin & Sync****
-------------------------------------------------------
+### ⚙️ Step 5: Add Google Services Plugin
 
-1.In your build.gradle files:
-Project-level build.gradle:
-classpath 'com.google.gms:google-services:4.3.15' // or latest
-
-2.App-level build.gradle:
-apply plugin: 'com.google.gms.google-services'
-
-Then click Sync Now in Android Studio.
+In build.gradle.kts (Project-level):
+```
+classpath("com.google.gms:google-services:4.3.15") // or latest
+```
+In build.gradle.kts (App-level):
+```
+plugins {
+    id("com.android.application")
+    id("com.google.gms.google-services")
+}
+```
+Sync the project after adding.
 
