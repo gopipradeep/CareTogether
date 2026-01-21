@@ -7,5 +7,6 @@ data class UserProfile(
     val town: String = "",
     val district: String = "",
     val state: String = "",
-    val profileImageUrl: String? = null
+    val profileImageUrl: String? = null,
+    val role: String = ""
 )

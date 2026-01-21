@@ -5,7 +5,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/donor"
+        android:background="@drawable/bg_donor_gradient"
         android:fillViewport="true">
 
         <LinearLayout

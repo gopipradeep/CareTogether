@@ -19,7 +19,7 @@ class RequestsFragment : Fragment() {
     private lateinit var needsRecyclerView: RecyclerView
     private lateinit var needEditText: EditText
     private lateinit var submitNeedButton: Button
-    private lateinit var noNeedsTextView: TextView
+    private lateinit var noNeedsView: View
     private lateinit var needsAdapter: NeedsAdapter
     private val needsList = mutableListOf<Need>()
 
@@ -40,7 +40,7 @@ class RequestsFragment : Fragment() {
         needsRecyclerView = view.findViewById(R.id.needsRecyclerView)
         needEditText = view.findViewById(R.id.needEditText)
         submitNeedButton = view.findViewById(R.id.submitNeedButton)
-        noNeedsTextView = view.findViewById(R.id.noNeedsTextView)
+        noNeedsView = view.findViewById(R.id.noNeedsTextView)
 
         fetchOrganizationName()
 
@@ -87,7 +87,7 @@ class RequestsFragment : Fragment() {
         firestore.collection("needs")
             .add(need)
             .addOnSuccessListener {
-                needEditText.text.clear()
+                needEditText.text?.clear()
                 fetchNeeds()
             }
             .addOnFailureListener { exception ->
@@ -106,10 +106,10 @@ class RequestsFragment : Fragment() {
                 needsAdapter.notifyDataSetChanged()
 
                 if (needsList.isEmpty()) {
-                    noNeedsTextView.visibility = View.VISIBLE
+                    noNeedsView.visibility = View.VISIBLE
                     needsRecyclerView.visibility = View.GONE
                 } else {
-                    noNeedsTextView.visibility = View.GONE
+                    noNeedsView.visibility = View.GONE
                     needsRecyclerView.visibility = View.VISIBLE
                 }
             }

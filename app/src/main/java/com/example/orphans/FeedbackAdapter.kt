@@ -3,6 +3,7 @@ package com.example.orphans
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -13,13 +14,15 @@ class FeedbackAdapter(
 
     inner class FeedbackViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val feedbackTextView: TextView = itemView.findViewById(R.id.feedbackTextView)
-        private val ratingTextView: TextView = itemView.findViewById(R.id.ratingTextView)
+        private val itemRatingBar: RatingBar = itemView.findViewById(R.id.itemRatingBar)
         private val userRoleTextView: TextView = itemView.findViewById(R.id.userRoleTextView)
+        private val userEmailTextView: TextView = itemView.findViewById(R.id.userEmailTextView)
 
         fun bind(feedback: Feedback) {
             feedbackTextView.text = feedback.feedback
-            ratingTextView.text = feedback.rating.toString()
+            itemRatingBar.rating = feedback.rating
             userRoleTextView.text = feedback.userRole
+            userEmailTextView.text = feedback.userEmail
 
             itemView.findViewById<View>(R.id.deleteButton).setOnClickListener {
                 onDeleteClick(feedback)

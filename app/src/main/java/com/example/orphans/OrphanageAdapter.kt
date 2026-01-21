@@ -1,11 +1,13 @@
 package com.example.orphans
 
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
 class OrphanageAdapter(
     private val orphanages: List<Orphanage>
@@ -40,7 +42,30 @@ class OrphanageAdapter(
         holder.orphanageNeeds.text = needsText
 
         // Handle Image Loading
-        holder.imageViewOrphanage.setImageResource(R.drawable.placeholder_image)
+        val imageSource = orphanage.profileImageUrl
+        if (!imageSource.isNullOrEmpty()) {
+            if (imageSource.startsWith("http")) {
+                Glide.with(holder.itemView.context)
+                    .load(imageSource)
+                    .placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.placeholder_image)
+                    .into(holder.imageViewOrphanage)
+            } else {
+                try {
+                    val imageByteArray = Base64.decode(imageSource, Base64.DEFAULT)
+                    Glide.with(holder.itemView.context)
+                        .asBitmap()
+                        .load(imageByteArray)
+                        .placeholder(R.drawable.placeholder_image)
+                        .error(R.drawable.placeholder_image)
+                        .into(holder.imageViewOrphanage)
+                } catch (e: Exception) {
+                    holder.imageViewOrphanage.setImageResource(R.drawable.placeholder_image)
+                }
+            }
+        } else {
+            holder.imageViewOrphanage.setImageResource(R.drawable.placeholder_image)
+        }
     }
 
     override fun getItemCount(): Int {

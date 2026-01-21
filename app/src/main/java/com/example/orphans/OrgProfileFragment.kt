@@ -44,7 +44,15 @@ class OrgProfileFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentOrgProfileBinding.inflate(inflater, container, false)
 
+        // 1. Instant display from cache
+        val cachedProfile = UserCache.getUserProfile(requireContext())
+        if (cachedProfile != null) {
+            displayUserProfile(cachedProfile)
+        }
+
+        // 2. Fetch fresh data in background
         loadUserProfile()
+        
         setupStateSpinner()
 
         binding.buttonEditProfile.setOnClickListener { enableEditing(true) }
@@ -66,10 +74,15 @@ class OrgProfileFragment : Fragment() {
         firestore.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 val profile = document.toObject(UserProfile::class.java)
-                profile?.let { displayUserProfile(it) }
+                profile?.let { 
+                    UserCache.saveUserProfile(requireContext(), it) // Update cache
+                    displayUserProfile(it) 
+                }
             }
             .addOnFailureListener {
-                Toast.makeText(context, "Failed to load profile", Toast.LENGTH_SHORT).show()
+                if (UserCache.getUserProfile(requireContext()) == null) {
+                    Toast.makeText(context, "Failed to load profile", Toast.LENGTH_SHORT).show()
+                }
             }
     }
 
@@ -169,6 +182,19 @@ class OrgProfileFragment : Fragment() {
             .addOnSuccessListener {
                 Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
                 enableEditing(false)
+                
+                // Immediately refresh cache after save
+                val updatedProfile = UserProfile(
+                    name = profileData["name"] as String,
+                    email = profileData["email"] as String,
+                    contactNumber = profileData["contactNumber"] as String,
+                    town = profileData["town"] as String,
+                    state = profileData["state"] as String,
+                    district = profileData["district"] as String,
+                    profileImageUrl = base64Image ?: UserCache.getUserProfile(requireContext())?.profileImageUrl
+                )
+                UserCache.saveUserProfile(requireContext(), updatedProfile)
+                
                 loadUserProfile()
             }
             .addOnFailureListener {
@@ -183,7 +209,8 @@ class OrgProfileFragment : Fragment() {
             val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, true)
             val outputStream = ByteArrayOutputStream()
             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
-            Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+            val byteArray = outputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
         } catch (e: Exception) {
             null
         }
@@ -204,6 +231,7 @@ class OrgProfileFragment : Fragment() {
 
     private fun logout() {
         auth.signOut()
+        UserCache.clear(requireContext())
         startActivity(Intent(context, AuthActivity::class.java))
         requireActivity().finish()
     }

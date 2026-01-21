@@ -33,12 +33,8 @@ class AuthActivity : AppCompatActivity() {
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_auth)
 
-
         initializeFirebase()
-
-
         configureGoogleSignIn()
-
         setClickListeners()
     }
 
@@ -94,7 +90,7 @@ class AuthActivity : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    checkUserRoleAndRedirect(email,password)
+                    checkUserRoleAndRedirect(email, password)
                 } else {
                     Log.e("AuthActivity", "Sign In failed: ${task.exception?.message}")
                     Toast.makeText(this, "Log In failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
@@ -117,11 +113,11 @@ class AuthActivity : AppCompatActivity() {
             return
         }
 
+        // Logic Change: Just check if account already exists, then navigate to Details
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
-                    saveUserDetails(userId)
+                    navigateToDetailsScreen()
                 } else {
                     Log.e("AuthActivity", "Sign Up failed: ${task.exception?.message}")
                     Toast.makeText(this, "Sign Up failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
@@ -129,26 +125,7 @@ class AuthActivity : AppCompatActivity() {
             }
     }
 
-    private fun saveUserDetails(userId: String) {
-        val userMap = hashMapOf(
-            "isNewUser" to true,
-            "role" to "default"
-        )
-
-        firestore.collection("users").document(userId)
-            .set(userMap)
-            .addOnSuccessListener {
-                navigateToDetailsScreen()
-            }
-            .addOnFailureListener { e ->
-                Log.e("AuthActivity", "Error saving user: ${e.message}")
-                Toast.makeText(this, "Error saving user: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
     private fun checkUserRoleAndRedirect(email: String, password: String) {
-
-
         if (email == "admin@gmail.com" && password == "123456") {
             navigateToAdminActivity()
             return
@@ -156,11 +133,10 @@ class AuthActivity : AppCompatActivity() {
 
         val userId = auth.currentUser?.uid ?: return
 
-
         firestore.collection("users").document(userId)
             .get()
             .addOnSuccessListener { document ->
-                if (document.exists()) {
+                if (document.exists() && document.contains("role") && document.getString("role") != "default") {
                     val role = document.getString("role")
                     when (role) {
                         "Donor" -> navigateToDonorActivity()
@@ -191,6 +167,7 @@ class AuthActivity : AppCompatActivity() {
         startActivity(Intent(this, OrganizationActivity::class.java))
         finish()
     }
+
     private fun navigateToAdminActivity() {
         startActivity(Intent(this, AdminActivity::class.java))
         finish()
@@ -231,5 +208,4 @@ class AuthActivity : AppCompatActivity() {
                 }
             }
     }
-
 }

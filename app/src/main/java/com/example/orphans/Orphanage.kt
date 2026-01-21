@@ -5,5 +5,6 @@ data class Orphanage(
     val contactNumber: String = "",
     val email: String = "",
     val town: String = "",
-    var needs: List<String> = listOf()
+    var needs: List<String> = listOf(),
+    val profileImageUrl: String? = null
 )

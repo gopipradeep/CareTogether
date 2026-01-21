@@ -20,6 +20,7 @@ class OrgFeedbackFragment : Fragment() {
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private var userRole: String? = null
+    private var userEmail: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,7 +35,7 @@ class OrgFeedbackFragment : Fragment() {
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        fetchUserRole()
+        fetchUserInfo()
 
         submitButton.setOnClickListener {
             submitFeedback()
@@ -43,8 +44,11 @@ class OrgFeedbackFragment : Fragment() {
         return view
     }
 
-    private fun fetchUserRole() {
-        val userId = auth.currentUser?.uid
+    private fun fetchUserInfo() {
+        val currentUser = auth.currentUser
+        val userId = currentUser?.uid
+        userEmail = currentUser?.email
+
         if (userId != null) {
             firestore.collection("users")
                 .document(userId)
@@ -72,6 +76,7 @@ class OrgFeedbackFragment : Fragment() {
             val feedbackData = hashMapOf(
                 "feedback" to feedback,
                 "userRole" to userRole,
+                "userEmail" to (userEmail ?: "No email"),
                 "rating" to rating
             )
 

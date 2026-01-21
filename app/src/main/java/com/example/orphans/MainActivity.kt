@@ -2,6 +2,8 @@ package com.example.orphans
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.example.orphans.databinding.ActivityMainBinding
@@ -22,7 +24,10 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
-        checkUserAuthentication()
+        // Show welcome screen for 2 seconds before checking auth
+        Handler(Looper.getMainLooper()).postDelayed({
+            checkUserAuthentication()
+        }, 2000)
     }
 
     private fun checkUserAuthentication() {
@@ -30,8 +35,7 @@ class MainActivity : AppCompatActivity() {
         if (currentUser != null) {
             retrieveUserRole(currentUser.uid)
         } else {
-            startActivity(Intent(this, AuthActivity::class.java))
-            finish()
+            navigateToAuth()
         }
     }
 
@@ -40,24 +44,38 @@ class MainActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
                     val role = document.getString("role")
-                    navigateToRoleActivity(role)
+                    if (role != null && role != "default") {
+                        navigateToRoleActivity(role)
+                    } else {
+                        navigateToDetails()
+                    }
                 } else {
-                    startActivity(Intent(this, AuthActivity::class.java))
-                    finish()
+                    // Auth user exists but no Firestore profile yet
+                    navigateToDetails()
                 }
             }
             .addOnFailureListener { exception ->
-                startActivity(Intent(this, AuthActivity::class.java))
-                finish()
+                navigateToAuth()
             }
     }
 
     private fun navigateToRoleActivity(role: String?) {
-        when (role) {
-            "Donor" -> startActivity(Intent(this, DonorActivity::class.java))
-            "Organization" -> startActivity(Intent(this, OrganizationActivity::class.java))
-            else -> startActivity(Intent(this, AuthActivity::class.java)) // Fallback
+        val intent = when (role) {
+            "Donor" -> Intent(this, DonorActivity::class.java)
+            "Organization" -> Intent(this, OrganizationActivity::class.java)
+            else -> Intent(this, DetailsActivity::class.java)
         }
+        startActivity(intent)
+        finish()
+    }
+
+    private fun navigateToAuth() {
+        startActivity(Intent(this, AuthActivity::class.java))
+        finish()
+    }
+
+    private fun navigateToDetails() {
+        startActivity(Intent(this, DetailsActivity::class.java))
         finish()
     }
 }

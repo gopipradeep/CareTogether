@@ -6,7 +6,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -16,7 +15,6 @@ class AdminActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAdminBinding
     private lateinit var firestore: FirebaseFirestore
-    private lateinit var feedbackRecyclerView: RecyclerView
     private lateinit var feedbackAdapter: FeedbackAdapter
     private val feedbackList = mutableListOf<Feedback>()
     private lateinit var auth: FirebaseAuth
@@ -30,15 +28,38 @@ class AdminActivity : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        feedbackRecyclerView = binding.feedbackRecyclerView
-        feedbackRecyclerView.layoutManager = LinearLayoutManager(this)
-
-        feedbackAdapter = FeedbackAdapter(feedbackList) { feedback -> deleteFeedback(feedback) }
-        feedbackRecyclerView.adapter = feedbackAdapter
-
+        setupRecyclerView()
+        loadStats()
         loadFeedback()
 
         binding.logoutButton.setOnClickListener { logout() }
+    }
+
+    private fun setupRecyclerView() {
+        feedbackAdapter = FeedbackAdapter(feedbackList) { feedback -> deleteFeedback(feedback) }
+        binding.feedbackRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@AdminActivity)
+            adapter = feedbackAdapter
+            isNestedScrollingEnabled = false
+        }
+    }
+
+    private fun loadStats() {
+        // Fetch Donor Count
+        firestore.collection("users")
+            .whereEqualTo("role", "Donor")
+            .get()
+            .addOnSuccessListener { documents ->
+                binding.donorCountText.text = documents.size().toString()
+            }
+
+        // Fetch Organization Count
+        firestore.collection("users")
+            .whereEqualTo("role", "Organization")
+            .get()
+            .addOnSuccessListener { documents ->
+                binding.orgCountText.text = documents.size().toString()
+            }
     }
 
     private fun loadFeedback() {
@@ -53,7 +74,6 @@ class AdminActivity : AppCompatActivity() {
                     feedbackList.add(feedback)
                 }
                 feedbackAdapter.notifyDataSetChanged()
-                Log.d("AdminActivity", "Loaded feedback count: ${documents.size()}")
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error loading feedback: ${e.message}", Toast.LENGTH_SHORT).show()

@@ -89,8 +89,9 @@ class OrphanagesFragment : Fragment() {
                         val contactNumber = document.getString("contactNumber") ?: "No Contact Info"
                         val email = document.getString("email") ?: "No Email Provided"
                         val town = document.getString("town") ?: "Not Specified"
+                        val profileImageUrl = document.getString("profileImageUrl")
 
-                        fetchNeeds(name, contactNumber, email, town)
+                        fetchNeeds(name, contactNumber, email, town, profileImageUrl)
                     }
                 } else {
                     noOrphanagesTextView.visibility = View.VISIBLE
@@ -102,7 +103,7 @@ class OrphanagesFragment : Fragment() {
             }
     }
 
-    private fun fetchNeeds(orphanageName: String, contactNumber: String, email: String, town: String) {
+    private fun fetchNeeds(orphanageName: String, contactNumber: String, email: String, town: String, profileImageUrl: String?) {
         firestore.collection("needs")
             .whereEqualTo("organizationname", orphanageName)
             .whereEqualTo("contactNumber", contactNumber)
@@ -114,7 +115,7 @@ class OrphanagesFragment : Fragment() {
                     needsList.add(needDescription)
                 }
 
-                val orphanage = Orphanage(orphanageName, contactNumber, email, town, needsList)
+                val orphanage = Orphanage(orphanageName, contactNumber, email, town, needsList, profileImageUrl)
                 orphanageList.add(orphanage)
                 orphanageAdapter.notifyDataSetChanged()
 
@@ -123,7 +124,7 @@ class OrphanagesFragment : Fragment() {
             }
             .addOnFailureListener { exception ->
                 Log.e("OrphanagesFragment", "Error fetching needs: ${exception.message}")
-                val orphanage = Orphanage(orphanageName, contactNumber, email, town, emptyList())
+                val orphanage = Orphanage(orphanageName, contactNumber, email, town, emptyList(), profileImageUrl)
                 orphanageList.add(orphanage)
                 orphanageAdapter.notifyDataSetChanged()
             }
