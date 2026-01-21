@@ -1,6 +1,5 @@
 package com.example.orphans
 
-import Need
 import androidx.recyclerview.widget.RecyclerView
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -67,16 +66,16 @@ class RequestsFragment : Fragment() {
                 .addOnSuccessListener { document ->
                     if (document != null && document.exists()) {
                         organizationName = document.getString("name") ?: "Unknown Organization"
-                        contactNumber=document.getString("contactNumber")?:"Unknown"
+                        contactNumber = document.getString("contactNumber") ?: "Unknown"
 
                     } else {
                         organizationName = "Unknown Organization"
-                        contactNumber="Unknown"
+                        contactNumber = "Unknown"
                     }
                 }
                 .addOnFailureListener { exception ->
                     organizationName = "Unknown Organization"
-                    contactNumber="Unknown"
+                    contactNumber = "Unknown"
                 }
         } else {
             organizationName = "Unknown Organization"
@@ -84,7 +83,7 @@ class RequestsFragment : Fragment() {
     }
 
     private fun submitNeed(description: String) {
-        val need = Need(description = description, organizationname = organizationName,contactNumber=contactNumber )
+        val need = Need(description = description, organizationname = organizationName, contactNumber = contactNumber)
         firestore.collection("needs")
             .add(need)
             .addOnSuccessListener {

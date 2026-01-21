@@ -2,29 +2,30 @@ package com.example.orphans
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.orphans.databinding.FragmentOrgProfileBinding
-
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 class OrgProfileFragment : Fragment() {
 
     private lateinit var binding: FragmentOrgProfileBinding
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-    private val storage = FirebaseStorage.getInstance()
     private var selectedImageUri: Uri? = null
 
     private val states = listOf("Andhra Pradesh", "Karnataka", "Maharashtra")
@@ -41,7 +42,6 @@ class OrgProfileFragment : Fragment() {
     )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-
         binding = FragmentOrgProfileBinding.inflate(inflater, container, false)
 
         loadUserProfile()
@@ -84,8 +84,18 @@ class OrgProfileFragment : Fragment() {
 
         setupDistrictSpinner(profile.state)
 
-        profile.profileImageUrl?.let {
-            Glide.with(this).load(it).into(binding.imageViewProfile)
+        val imageSource = profile.profileImageUrl
+        if (!imageSource.isNullOrEmpty()) {
+            if (imageSource.startsWith("http")) {
+                Glide.with(this).load(imageSource).into(binding.imageViewProfile)
+            } else {
+                try {
+                    val imageByteArray = Base64.decode(imageSource, Base64.DEFAULT)
+                    Glide.with(this).asBitmap().load(imageByteArray).into(binding.imageViewProfile)
+                } catch (e: Exception) {
+                    binding.imageViewProfile.setImageResource(R.drawable.placeholder_image)
+                }
+            }
         }
     }
 
@@ -99,9 +109,7 @@ class OrgProfileFragment : Fragment() {
                 val selectedState = states[position]
                 setupDistrictSpinner(selectedState)
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>) {
-            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
@@ -119,7 +127,7 @@ class OrgProfileFragment : Fragment() {
         binding.spinnerState.isEnabled = enable
         binding.spinnerDistrict.isEnabled = enable
         binding.buttonSaveProfile.visibility = if (enable) View.VISIBLE else View.GONE
-
+        binding.buttonEditProfile.visibility = if (enable) View.GONE else View.VISIBLE
 
         if (enable) {
             binding.textViewState.visibility = View.GONE
@@ -133,57 +141,51 @@ class OrgProfileFragment : Fragment() {
             binding.spinnerDistrict.visibility = View.GONE
         }
 
-        binding.imageViewProfile.isClickable = enable
-        binding.imageViewProfile.alpha = if (enable) 1.0f else 0.5f
+        binding.imageViewProfile.alpha = if (enable) 0.8f else 1.0f
     }
 
     private fun saveProfileData() {
         val userId = auth.currentUser?.uid ?: return
-        val selectedState = binding.spinnerState.selectedItem.toString()
-        val selectedDistrict = binding.spinnerDistrict.selectedItem.toString()
-        val profileData = mapOf(
+        
+        var base64Image: String? = null
+        if (selectedImageUri != null) {
+            base64Image = uriToBase64(selectedImageUri!!)
+        }
+
+        val profileData = mutableMapOf<String, Any>(
             "name" to binding.editTextName.text.toString().trim(),
             "email" to binding.editTextEmail.text.toString().trim(),
             "contactNumber" to binding.editTextPhone.text.toString().trim(),
-            "district" to selectedDistrict,
             "town" to binding.editTextTown.text.toString().trim(),
-            "state" to selectedState
+            "state" to binding.spinnerState.selectedItem.toString(),
+            "district" to binding.spinnerDistrict.selectedItem.toString()
         )
+        
+        if (base64Image != null) {
+            profileData["profileImageUrl"] = base64Image
+        }
 
         firestore.collection("users").document(userId).update(profileData)
             .addOnSuccessListener {
-                if (selectedImageUri != null) {
-                    uploadProfileImage(userId)
-                } else {
-                    Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    enableEditing(false)
-                }
+                Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                enableEditing(false)
+                loadUserProfile()
             }
             .addOnFailureListener {
                 Toast.makeText(context, "Failed to update profile", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun uploadProfileImage(userId: String) {
-        val ref = storage.reference.child("profile_images/$userId.jpg")
-        selectedImageUri?.let { uri ->
-            ref.putFile(uri)
-                .addOnSuccessListener {
-                    ref.downloadUrl.addOnSuccessListener { downloadUri ->
-                        firestore.collection("users").document(userId)
-                            .update("profileImageUrl", downloadUri.toString())
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                                enableEditing(false)
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(context, "Failed to update image URL", Toast.LENGTH_SHORT).show()
-                            }
-                    }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(context, "Failed to upload image", Toast.LENGTH_SHORT).show()
-                }
+    private fun uriToBase64(uri: Uri): String? {
+        return try {
+            val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, true)
+            val outputStream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+            Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -202,7 +204,6 @@ class OrgProfileFragment : Fragment() {
 
     private fun logout() {
         auth.signOut()
-        Toast.makeText(context, "Logged out", Toast.LENGTH_SHORT).show()
         startActivity(Intent(context, AuthActivity::class.java))
         requireActivity().finish()
     }

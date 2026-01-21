@@ -18,7 +18,7 @@ class DonorActivity : AppCompatActivity() {
             loadFragment(OrphanagesFragment())
         }
 
-        binding.bottomNavigation.setOnNavigationItemSelectedListener { menuItem ->
+        binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.navigation_orphanages -> {
                     loadFragment(OrphanagesFragment())

@@ -1,143 +1,134 @@
 package com.example.orphans
 
-import SlumArea
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
+import android.util.Base64
+import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.orphans.databinding.ActivitySlumAreaReportBinding
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
-import java.io.IOException
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 class SlumAreaReportActivity : AppCompatActivity() {
 
-    private lateinit var firestore: FirebaseFirestore
-    private lateinit var storage: FirebaseStorage
-    private lateinit var storageRef: StorageReference
-    private lateinit var townEditText: EditText
-    private lateinit var populationEditText: EditText
-    private lateinit var stateSpinner: Spinner
-    private lateinit var districtSpinner: Spinner
-    private lateinit var submitButton: Button
-    private lateinit var uploadImageButton: Button
-    private lateinit var imageView: ImageView
+    private lateinit var binding: ActivitySlumAreaReportBinding
+    private val firestore = FirebaseFirestore.getInstance()
     private var imageUri: Uri? = null
+
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            imageUri = result.data?.data
+            if (imageUri != null) {
+                binding.imageView.setImageURI(imageUri)
+                binding.imageView.visibility = View.VISIBLE
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_slum_area_report)
+        binding = ActivitySlumAreaReportBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        firestore = FirebaseFirestore.getInstance()
-        storage = FirebaseStorage.getInstance()
-        storageRef = storage.reference
+        setupSpinners()
 
-        townEditText = findViewById(R.id.editTextTown)
-        populationEditText = findViewById(R.id.editTextPopulation)
-        stateSpinner = findViewById(R.id.spinnerState)
-        districtSpinner = findViewById(R.id.spinnerDistrict)
-        submitButton = findViewById(R.id.buttonSubmit)
-        uploadImageButton = findViewById(R.id.buttonUploadImage)
-        imageView = findViewById(R.id.imageView)
+        binding.buttonUploadImage.setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "image/*" }
+            imagePickerLauncher.launch(intent)
+        }
 
+        binding.buttonSubmit.setOnClickListener {
+            validateAndSubmit()
+        }
+    }
+
+    private fun setupSpinners() {
         val states = listOf("Andhra Pradesh")
-        val districts = listOf(
-            "Alluri Sitharama Raju", "Anakapalli", "Ananthapuramu",
-            "Annamayya", "Bapatla", "Chittoor", "Dr. B.R. Ambedkar Konaseema",
-            "East Godavari", "Eluru", "Guntur", "Kakinada", "Krishna",
-            "Kurnool", "Nandyal", "Ntr", "Palnadu", "Parvathipuram Manyam",
-            "Prakasam", "Sri Potti Sriramulu Nellore", "Sri Sathya Sai",
-            "Srikakulam", "Tirupati", "Visakhapatnam", "Vizianagaram",
-            "West Godavari", "Y.S.R."
-        )
+        val districts = resources.getStringArray(R.array.districts_array).toList()
 
-        val stateAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, states)
-        val districtAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, districts)
-        stateSpinner.adapter = stateAdapter
-        districtSpinner.adapter = districtAdapter
+        binding.spinnerState.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, states)
+        binding.spinnerDistrict.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, districts)
+    }
 
-        uploadImageButton.setOnClickListener {
-            openImagePicker()
+    private fun validateAndSubmit() {
+        val town = binding.editTextTown.text.toString().trim()
+        val population = binding.editTextPopulation.text.toString().trim()
+        val state = binding.spinnerState.selectedItem.toString()
+        val district = binding.spinnerDistrict.selectedItem.toString()
+
+        if (town.isEmpty()) {
+            binding.editTextTown.error = "Town is required"
+            return
+        }
+        if (population.isEmpty()) {
+            binding.editTextPopulation.error = "Population is required"
+            return
         }
 
-        submitButton.setOnClickListener {
-            val town = townEditText.text.toString()
-            val population = populationEditText.text.toString()
-            val state = stateSpinner.selectedItem.toString()
-            val district = districtSpinner.selectedItem.toString()
+        setLoading(true)
 
-            if (town.isNotEmpty() && population.isNotEmpty()) {
-                if (imageUri != null) {
-                    uploadImageAndSaveData(town, population, state, district)
-                } else {
-                    Toast.makeText(this, "Please upload an image", Toast.LENGTH_SHORT).show()
-                }
+        if (imageUri != null) {
+            val base64Image = uriToBase64(imageUri!!)
+            if (base64Image != null) {
+                saveSlumAreaData(town, population, state, district, base64Image)
             } else {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                setLoading(false)
+                Toast.makeText(this, "Failed to process image", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            saveSlumAreaData(town, population, state, district, null)
         }
     }
 
-    private fun openImagePicker() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, IMAGE_PICK_CODE)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == IMAGE_PICK_CODE && resultCode == RESULT_OK && data != null) {
-            imageUri = data.data
-            try {
-                val bitmap: Bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
-                imageView.setImageBitmap(bitmap)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
+    private fun uriToBase64(uri: Uri): String? {
+        return try {
+            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            
+            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 600, 600, true)
+            
+            val outputStream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+            val byteArray = outputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
-    private fun uploadImageAndSaveData(town: String, population: String, state: String, district: String) {
-        val imageRef = storageRef.child("slum_area_images/${System.currentTimeMillis()}.jpg")
-
-        imageUri?.let { uri ->
-            imageRef.putFile(uri)
-                .addOnSuccessListener {
-                    imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                        saveSlumAreaData(town, population, state, district, downloadUrl.toString())
-                    }.addOnFailureListener { e ->
-                        Toast.makeText(this, "Failed to get image URL: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Image upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        }
+    private fun setLoading(isLoading: Boolean) {
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        binding.buttonSubmit.isEnabled = !isLoading
+        binding.buttonSubmit.text = if (isLoading) "Submitting..." else "Submit Report"
     }
 
-    private fun saveSlumAreaData(town: String, population: String, state: String, district: String, imageUrl: String?) {
+    private fun saveSlumAreaData(town: String, population: String, state: String, district: String, imageBase64: String?) {
         val slumArea = SlumArea(
             town = town,
             expected_population = population,
             state = state,
             district = district,
-            imageUrl = imageUrl
+            imageUrl = imageBase64
         )
 
         firestore.collection("slum_area")
             .add(slumArea)
             .addOnSuccessListener {
-                Toast.makeText(this, "Slum area reported successfully!", Toast.LENGTH_SHORT).show()
+                setLoading(false)
+                Toast.makeText(this, "Reported successfully!", Toast.LENGTH_LONG).show()
                 finish()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to report slum area: ${e.message}", Toast.LENGTH_SHORT).show()
+                setLoading(false)
+                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-    }
-
-    companion object {
-        private const val IMAGE_PICK_CODE = 1000
     }
 }

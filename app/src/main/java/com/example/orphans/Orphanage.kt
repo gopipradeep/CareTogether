@@ -7,4 +7,3 @@ data class Orphanage(
     val town: String = "",
     var needs: List<String> = listOf()
 )
-

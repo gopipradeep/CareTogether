@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/donor"
-    >
+    android:background="@drawable/donor">
 
     <TextView
         android:id="@+id/textViewOrphanages"
@@ -34,7 +33,6 @@
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:background="@drawable/spinner_background"
-        android:textColor="@color/black"
         android:paddingBottom="16dp" />
 
     <TextView

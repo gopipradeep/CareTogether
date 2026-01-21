@@ -1,48 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/purple_200"
-    android:layout_marginTop="10dp"
-    android:layout_marginBottom="8dp"
-    android:gravity="start">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
 
-    <TextView
-        android:id="@+id/orphanageName"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/orphanageContact"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:textSize="14sp"/>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/img_container"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-    <TextView
-        android:id="@+id/orphanageEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:textSize="14sp"/>
+            <ImageView
+                android:id="@+id/imageViewOrphanage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder_image" />
+        </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:id="@+id/orphanageTown"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:textSize="14sp"/>
+        <TextView
+            android:id="@+id/orphanageName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Orphanage Name"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/img_container"
+            app:layout_constraintTop_toTopOf="@id/img_container" />
 
-    <TextView
-        android:id="@+id/orphanageNeeds"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="@color/green1"/>
-</LinearLayout>
+        <TextView
+            android:id="@+id/orphanageTown"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Town, District"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/orphanageName"
+            app:layout_constraintTop_toBottomOf="@id/orphanageName" />
+
+        <TextView
+            android:id="@+id/orphanageContact"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Contact Number"
+            android:textColor="@color/gray"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/orphanageName"
+            app:layout_constraintTop_toBottomOf="@id/orphanageTown" />
+
+        <TextView
+            android:id="@+id/orphanageEmail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Email Address"
+            android:textColor="@color/gray"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/orphanageName"
+            app:layout_constraintTop_toBottomOf="@id/orphanageContact" />
+
+        <TextView
+            android:id="@+id/orphanageNeeds"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Needs: Loading..."
+            android:textColor="@color/green1"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/orphanageName"
+            app:layout_constraintTop_toBottomOf="@id/orphanageEmail" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

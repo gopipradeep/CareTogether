@@ -4,36 +4,45 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.orphans.databinding.FragmentReportOrphanBinding
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
-import java.util.*
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 class ReportOrphanFragment : Fragment() {
 
     private lateinit var binding: FragmentReportOrphanBinding
-    private val storage = FirebaseStorage.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
     private var photoUri: Uri? = null
 
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            photoUri = result.data?.data
+            if (photoUri != null) {
+                binding.imageViewPhotoPreview.setImageURI(photoUri)
+                binding.imageCard.visibility = View.VISIBLE
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_report_orphan, container, false)
-
         setupSpinners()
-        checkPermissions()
 
         binding.buttonUploadPhoto.setOnClickListener {
             pickImage()
@@ -47,50 +56,18 @@ class ReportOrphanFragment : Fragment() {
     }
 
     private fun setupSpinners() {
-        val districts = listOf(
-            "Alluri Sitharama Raju", "Anakapalli", "Ananthapuramu",
-            "Annamayya", "Bapatla", "Chittoor", "Dr. B.R. Ambedkar Konaseema",
-            "East Godavari", "Eluru", "Guntur", "Kakinada", "Krishna",
-            "Kurnool", "Nandyal", "Ntr", "Palnadu", "Parvathipuram Manyam",
-            "Prakasam", "Sri Potti Sriramulu Nellore", "Sri Sathya Sai",
-            "Srikakulam", "Tirupati", "Visakhapatnam", "Vizianagaram",
-            "West Godavari", "Y.S.R."
-        )
-        val states = listOf("Andhra Pradesh")
+        val districts = resources.getStringArray(R.array.districts_array).toList()
+        val states = resources.getStringArray(R.array.state_array).toList()
 
-        val districtAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, districts)
-        districtAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.districtSpinner.adapter = districtAdapter
-
-        val stateAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, states)
-        stateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.stateSpinner.adapter = stateAdapter
-    }
-
-    private fun checkPermissions() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_PERMISSION)
-        }
+        binding.districtSpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, districts)
+        binding.stateSpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, states)
     }
 
     private fun pickImage() {
-        val intent = Intent(Intent.ACTION_PICK).apply {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "image/*"
         }
-        startActivityForResult(intent, REQUEST_IMAGE_PICK)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK) {
-            photoUri = data?.data
-            if (photoUri != null) {
-                binding.imageViewPhotoPreview.setImageURI(photoUri)
-                binding.imageViewPhotoPreview.visibility = View.VISIBLE
-            } else {
-                Toast.makeText(requireContext(), "No image selected.", Toast.LENGTH_SHORT).show()
-            }
-        }
+        imagePickerLauncher.launch(intent)
     }
 
     private fun submitReport() {
@@ -98,76 +75,70 @@ class ReportOrphanFragment : Fragment() {
         val district = binding.districtSpinner.selectedItem?.toString() ?: ""
         val state = binding.stateSpinner.selectedItem?.toString() ?: ""
 
-        if (town.isEmpty() || district.isEmpty() || state.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill all fields.", Toast.LENGTH_SHORT).show()
+        if (town.isEmpty()) {
+            binding.editTextTown.error = "Required"
             return
         }
 
+        setLoading(true)
+
         if (photoUri != null) {
-            uploadPhotoAndSubmitReport(town, state, district)
+            val base64Image = uriToBase64(photoUri!!)
+            if (base64Image != null) {
+                submitReportToFirestore(town, state, district, base64Image)
+            } else {
+                setLoading(false)
+                Toast.makeText(requireContext(), "Failed to process image", Toast.LENGTH_SHORT).show()
+            }
         } else {
             submitReportToFirestore(town, state, district, null)
         }
     }
 
-    private fun uploadPhotoAndSubmitReport(town: String, state: String, district: String) {
-        val filename = "orphan_reports/${UUID.randomUUID()}.jpg"
-        val ref = storage.reference.child(filename)
-
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user == null) {
-            Toast.makeText(requireContext(), "You need to be logged in to upload images.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        photoUri?.let { uri ->
-            ref.putFile(uri)
-                .addOnSuccessListener {
-                    ref.downloadUrl.addOnSuccessListener { downloadUri ->
-                        submitReportToFirestore(town, state, district, downloadUri.toString())
-                    }.addOnFailureListener { e ->
-                        Log.e("UploadError", "Failed to get download URL: ${e.message}")
-                        Toast.makeText(requireContext(), "Failed to get download URL: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
-                }.addOnFailureListener { e ->
-                    Log.e("UploadError", "Failed to upload photo: ${e.message}")
-                    Toast.makeText(requireContext(), "Photo upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-        } ?: run {
-            Toast.makeText(requireContext(), "No image selected for upload.", Toast.LENGTH_SHORT).show()
+    private fun uriToBase64(uri: Uri): String? {
+        return try {
+            val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, true)
+            val outputStream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+            val byteArray = outputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.DEFAULT)
+        } catch (e: Exception) {
+            null
         }
     }
 
-    private fun submitReportToFirestore(town: String, state: String, district: String, photoUrl: String?) {
+    private fun setLoading(isLoading: Boolean) {
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        binding.buttonSubmitReport.isEnabled = !isLoading
+        binding.buttonSubmitReport.text = if (isLoading) "Submitting..." else "Submit Report"
+    }
+
+    private fun submitReportToFirestore(town: String, state: String, district: String, photoBase64: String?) {
         val reportData = hashMapOf(
             "town" to town,
             "state" to state,
             "district" to district,
-            "photoUrl" to photoUrl
+            "photoUrl" to photoBase64,
+            "timestamp" to System.currentTimeMillis()
         )
 
-        firestore.collection("orphan_reports")
-            .add(reportData)
+        firestore.collection("orphan_reports").add(reportData)
             .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Report submitted successfully!", Toast.LENGTH_SHORT).show()
+                setLoading(false)
+                Toast.makeText(requireContext(), "Submitted successfully!", Toast.LENGTH_SHORT).show()
                 clearInputs()
             }
             .addOnFailureListener { e ->
-                Log.e("FirestoreError", "Error adding document: ${e.message}")
-                Toast.makeText(requireContext(), "Failed to submit report: ${e.message}", Toast.LENGTH_SHORT).show()
+                setLoading(false)
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun clearInputs() {
-        binding.editTextTown.text.clear()
-        binding.districtSpinner.setSelection(0)
-        binding.stateSpinner.setSelection(0)
-        binding.imageViewPhotoPreview.visibility = View.GONE
+        binding.editTextTown.text?.clear()
+        binding.imageCard.visibility = View.GONE
         photoUri = null
-    }
-
-    companion object {
-        private const val REQUEST_IMAGE_PICK = 1
-        private const val REQUEST_PERMISSION = 2
     }
 }

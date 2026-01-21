@@ -11,10 +11,12 @@ class OrganizationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_organization)
 
-        loadFragment(RequestsFragment())
+        if (savedInstanceState == null) {
+            loadFragment(RequestsFragment())
+        }
 
         val bottomNav: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNav.setOnNavigationItemSelectedListener { menuItem ->
+        bottomNav.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_requests -> {
                     loadFragment(RequestsFragment())
@@ -38,7 +40,6 @@ class OrganizationActivity : AppCompatActivity() {
     }
 
     private fun loadFragment(fragment: Fragment) {
-
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container, fragment)
         transaction.commit()

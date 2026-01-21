@@ -1,9 +1,13 @@
 package com.example.orphans
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,17 +19,18 @@ import com.bumptech.glide.Glide
 import com.example.orphans.databinding.FragmentProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import com.google.gson.Gson
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 class ProfileFragment : Fragment() {
 
     private lateinit var binding: FragmentProfileBinding
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-    private val storage = FirebaseStorage.getInstance()
     private var selectedImageUri: Uri? = null
 
-    private val states = listOf("Andhra Pradesh", "Karnataka", "Maharashtra") // Add all states here
+    private val states = listOf("Andhra Pradesh", "Karnataka", "Maharashtra")
     private val districts = mapOf(
         "Andhra Pradesh" to listOf(
             "Alluri Sitharama Raju", "Anakapalli", "Ananthapuramu",
@@ -41,6 +46,9 @@ class ProfileFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentProfileBinding.inflate(inflater, container, false)
 
+        // Instant Loading: Show cached data first
+        showCachedProfile()
+        
         loadUserProfile()
         setupStateSpinner()
 
@@ -57,17 +65,38 @@ class ProfileFragment : Fragment() {
         return binding.root
     }
 
+    private fun showCachedProfile() {
+        val sharedPref = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val cachedProfileJson = sharedPref.getString("user_profile", null)
+        if (cachedProfileJson != null) {
+            val profile = Gson().fromJson(cachedProfileJson, UserProfile::class.java)
+            displayUserProfile(profile)
+        }
+    }
+
     private fun loadUserProfile() {
         val userId = auth.currentUser?.uid ?: return
 
         firestore.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
                 val profile = document.toObject(UserProfile::class.java)
-                profile?.let { displayUserProfile(it) }
+                profile?.let { 
+                    displayUserProfile(it)
+                    // Cache the fresh data
+                    cacheProfile(it)
+                }
             }
             .addOnFailureListener {
                 Toast.makeText(context, "Failed to load profile", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun cacheProfile(profile: UserProfile) {
+        val sharedPref = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("user_profile", Gson().toJson(profile))
+            apply()
+        }
     }
 
     private fun displayUserProfile(profile: UserProfile) {
@@ -81,8 +110,18 @@ class ProfileFragment : Fragment() {
 
         setupDistrictSpinner(profile.state)
 
-        profile.profileImageUrl?.let {
-            Glide.with(this).load(it).into(binding.imageViewProfile)
+        val imageSource = profile.profileImageUrl
+        if (!imageSource.isNullOrEmpty()) {
+            if (imageSource.startsWith("http")) {
+                Glide.with(this).load(imageSource).placeholder(R.drawable.placeholder_image).into(binding.imageViewProfile)
+            } else {
+                try {
+                    val imageByteArray = Base64.decode(imageSource, Base64.DEFAULT)
+                    Glide.with(this).asBitmap().load(imageByteArray).placeholder(R.drawable.placeholder_image).into(binding.imageViewProfile)
+                } catch (e: Exception) {
+                    binding.imageViewProfile.setImageResource(R.drawable.placeholder_image)
+                }
+            }
         }
     }
 
@@ -96,9 +135,7 @@ class ProfileFragment : Fragment() {
                 val selectedState = states[position]
                 setupDistrictSpinner(selectedState)
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>) {
-            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
@@ -116,6 +153,7 @@ class ProfileFragment : Fragment() {
         binding.spinnerState.isEnabled = enable
         binding.spinnerDistrict.isEnabled = enable
         binding.buttonSaveProfile.visibility = if (enable) View.VISIBLE else View.GONE
+        binding.buttonEditProfile.visibility = if (enable) View.GONE else View.VISIBLE
 
         if (enable) {
             binding.textViewState.visibility = View.GONE
@@ -129,57 +167,51 @@ class ProfileFragment : Fragment() {
             binding.spinnerDistrict.visibility = View.GONE
         }
 
-        binding.imageViewProfile.isClickable = enable
-        binding.imageViewProfile.alpha = if (enable) 1.0f else 0.5f
+        binding.imageViewProfile.alpha = if (enable) 0.8f else 1.0f
     }
 
     private fun saveProfileData() {
         val userId = auth.currentUser?.uid ?: return
-        val selectedState = binding.spinnerState.selectedItem.toString()
-        val selectedDistrict = binding.spinnerDistrict.selectedItem.toString()
-        val profileData = mapOf(
+        
+        var base64Image: String? = null
+        if (selectedImageUri != null) {
+            base64Image = uriToBase64(selectedImageUri!!)
+        }
+
+        val profileData = mutableMapOf(
             "name" to binding.editTextName.text.toString().trim(),
             "email" to binding.editTextEmail.text.toString().trim(),
             "contactNumber" to binding.editTextPhone.text.toString().trim(),
-            "district" to selectedDistrict,
             "town" to binding.editTextTown.text.toString().trim(),
-            "state" to selectedState
+            "state" to binding.spinnerState.selectedItem.toString(),
+            "district" to binding.spinnerDistrict.selectedItem.toString()
         )
 
-        firestore.collection("users").document(userId).update(profileData)
+        if (base64Image != null) {
+            profileData["profileImageUrl"] = base64Image
+        }
+
+        firestore.collection("users").document(userId).update(profileData as Map<String, Any>)
             .addOnSuccessListener {
-                if (selectedImageUri != null) {
-                    uploadProfileImage(userId)
-                } else {
-                    Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    enableEditing(false)
-                }
+                Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                enableEditing(false)
+                loadUserProfile()
             }
             .addOnFailureListener {
                 Toast.makeText(context, "Failed to update profile", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun uploadProfileImage(userId: String) {
-        val ref = storage.reference.child("profile_images/$userId.jpg")
-        selectedImageUri?.let { uri ->
-            ref.putFile(uri)
-                .addOnSuccessListener {
-                    ref.downloadUrl.addOnSuccessListener { downloadUri ->
-                        firestore.collection("users").document(userId)
-                            .update("profileImageUrl", downloadUri.toString())
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                                enableEditing(false)
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(context, "Failed to update image URL", Toast.LENGTH_SHORT).show()
-                            }
-                    }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(context, "Failed to upload image", Toast.LENGTH_SHORT).show()
-                }
+    private fun uriToBase64(uri: Uri): String? {
+        return try {
+            val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, true)
+            val outputStream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+            Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -198,7 +230,8 @@ class ProfileFragment : Fragment() {
 
     private fun logout() {
         auth.signOut()
-        Toast.makeText(context, "Logged out", Toast.LENGTH_SHORT).show()
+        val sharedPref = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        sharedPref.edit().remove("user_profile").apply()
         startActivity(Intent(context, AuthActivity::class.java))
         requireActivity().finish()
     }

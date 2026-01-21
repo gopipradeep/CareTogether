@@ -3,6 +3,7 @@ package com.example.orphans
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -16,6 +17,7 @@ class OrphanageAdapter(
         val orphanageEmail: TextView = itemView.findViewById(R.id.orphanageEmail)
         val orphanageTown: TextView = itemView.findViewById(R.id.orphanageTown)
         val orphanageNeeds: TextView = itemView.findViewById(R.id.orphanageNeeds)
+        val imageViewOrphanage: ImageView = itemView.findViewById(R.id.imageViewOrphanage)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrphanageViewHolder {
@@ -26,20 +28,22 @@ class OrphanageAdapter(
     override fun onBindViewHolder(holder: OrphanageViewHolder, position: Int) {
         val orphanage = orphanages[position]
         holder.orphanageName.text = orphanage.name
-        holder.orphanageTown.text = "Town: ${orphanage.town}"
-        holder.orphanageContact.text = "Contact: ${orphanage.contactNumber}"
-        holder.orphanageEmail.text = "Email: ${orphanage.email}"
+        holder.orphanageTown.text = orphanage.town
+        holder.orphanageContact.text = orphanage.contactNumber
+        holder.orphanageEmail.text = orphanage.email
 
         val needsText = if (orphanage.needs.isNotEmpty()) {
             "Needs: ${orphanage.needs.joinToString(", ")}"
         } else {
-            "No needs available."
+            "No needs listed."
         }
         holder.orphanageNeeds.text = needsText
+
+        // Handle Image Loading
+        holder.imageViewOrphanage.setImageResource(R.drawable.placeholder_image)
     }
 
     override fun getItemCount(): Int {
         return orphanages.size
     }
-
 }

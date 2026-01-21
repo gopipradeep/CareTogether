@@ -1,6 +1,5 @@
 package com.example.orphans
 
-import Feedback
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -31,7 +30,7 @@ class AdminActivity : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        feedbackRecyclerView = findViewById(R.id.feedbackRecyclerView)
+        feedbackRecyclerView = binding.feedbackRecyclerView
         feedbackRecyclerView.layoutManager = LinearLayoutManager(this)
 
         feedbackAdapter = FeedbackAdapter(feedbackList) { feedback -> deleteFeedback(feedback) }
@@ -47,7 +46,7 @@ class AdminActivity : AppCompatActivity() {
             .orderBy("rating", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { documents ->
-                feedbackList.clear() // Clear the list before loading new data
+                feedbackList.clear()
                 for (document in documents) {
                     val feedback = document.toObject(Feedback::class.java)
                     feedback.feedbackId = document.id
@@ -62,7 +61,6 @@ class AdminActivity : AppCompatActivity() {
     }
 
     private fun deleteFeedback(feedback: Feedback) {
-
         firestore.collection("feedbacks").document(feedback.feedbackId)
             .delete()
             .addOnSuccessListener {

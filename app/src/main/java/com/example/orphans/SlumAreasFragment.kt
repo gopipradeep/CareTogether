@@ -1,6 +1,6 @@
 package com.example.orphans
 
-import SlumArea
+
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -22,7 +22,7 @@ class SlumAreasFragment : Fragment() {
 
     private lateinit var firestore: FirebaseFirestore
     private lateinit var recyclerView: RecyclerView
-    private lateinit var slumAdapter: SlumAreaAdapter
+    private lateinit var slumAdapter: SlumAreasAdapter
     private lateinit var noDataTextView: TextView
     private var slumList: MutableList<SlumArea> = mutableListOf()
 
@@ -36,7 +36,7 @@ class SlumAreasFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.recyclerViewSlumAreas)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        slumAdapter = SlumAreaAdapter(slumList)
+        slumAdapter = SlumAreasAdapter(slumList)
         recyclerView.adapter = slumAdapter
 
         noDataTextView = view.findViewById(R.id.textViewNoSlumAreas)
@@ -98,7 +98,7 @@ class SlumAreasFragment : Fragment() {
 
                     for (document in documents) {
                         val slum = document.toObject(SlumArea::class.java)
-                        slumList.add(slum)
+                        slum?.let { slumList.add(it) }
                         Log.d("SlumAreasFragment", "Fetched slum area: $slum")
                     }
                     slumAdapter.notifyDataSetChanged()

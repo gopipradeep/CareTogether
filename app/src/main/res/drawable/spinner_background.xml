@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Background Shape -->
@@ -18,7 +19,5 @@
         android:drawable="@drawable/spinner_arrow"
         android:gravity="end|center_vertical"
         android:right="8dp"/>
-
-
 
 </layer-list>
