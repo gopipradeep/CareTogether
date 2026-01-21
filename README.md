@@ -1,112 +1,88 @@
-# 🤝 CareTogether - Android App
+# 🤝 CareTogether - Android Application
 
-CareTogether is a purpose-driven Android application that bridges the gap between donors and orphanages, enabling support for children in need and slum areas. It offers streamlined features for reporting, connecting, and assisting with transparency and accessibility.
+**CareTogether** is a modern, purpose-driven Android application designed to bridge the gap between donors and orphanages. The app facilitates real-time support for children in need and slum areas by allowing users to report orphans, organizations to post their needs, and donors to find exactly where their help is required.
 
 ---
 
-## 📲 Features
+## 🚀 Key User Roles
 
-- 🏠 **Home Dashboard** with quick access to:
-  - Orphanages
-  - Slum Areas
-  - Needs
-  - Report Orphans
-  - Help/Feedback
-- 📍 **Location-based search** by city and district
-- 🔐 **User authentication** (Login & Signup) with role selection (Donor or Organization)
-- 🧾 **Profile management** for both donors and organizations
-- 💬 **Feedback and Reporting System**
-- 🌐 Future support for APIs (Yelp, Mapple, etc.)
-- 🎨 Clean, user-friendly UI with Material Design
+### 👑 Admin Dashboard
+*   **Live Statistics:** View the total number of registered Donors and Organizations in real-time.
+*   **Feedback Management:** Read and moderate feedback submitted by users, including their Gmail addresses and star ratings.
+
+### 👤 Donor Interface
+*   **Orphanage Search:** Find organizations filtered by State and District.
+*   **Real-time Needs:** View the specific needs (food, clothes, books, etc.) posted by organizations.
+*   **Slum Area Reporting:** Report orphan children in slum areas by providing location details and uploading photos.
+*   **Profile Management:** Maintain personal details for a personalized experience.
+
+### 🏢 Organization Interface
+*   **Instant Profile:** High-speed access to organization details using local caching.
+*   **Post Needs:** Create and publish real-time requests for items or support.
+*   **Community Reports:** View reports of orphans found in their vicinity to take immediate action.
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Language:** Kotlin  
-- **Backend:** Firebase Authentication & Firestore  
-- **Libraries/Tools:**
-  - Android Jetpack (ViewBinding, Navigation)
-  - Material Design Components
-  - Firebase SDKs
-  - Gradle Kotlin DSL
+- **Language:** Kotlin 
+- **Database & Auth:** Firebase Firestore, Authentication, and Storage.
+- **UI Components:** Material Design 3, CoordinatorLayout, ConstraintLayout.
+- **Image Handling:** Glide (Supports both URL and Base64 encoded images).
+- **Architecture:** MVVM patterns with DataBinding & ViewBinding.
+- **Caching:** SharedPreferences with Gson for instant profile loading.
+
+---
+
+## 🏁 How to Run the Application
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/your-username/CareTogether.git
+```
+
+### 2️⃣ Firebase Configuration (Required)
+The app requires Firebase to function. Follow these steps:
+1.  Go to the [Firebase Console](https://console.firebase.google.com/).
+2.  Create a project named **CareTogether**.
+3.  Add an Android App with the package name `com.example.orphans`.
+4.  **Download `google-services.json`** and place it in the `app/` directory.
+5.  **Enable Auth & Firestore:**
+    *   Enable **Email/Password** and **Google** sign-in providers in Firebase Authentication.
+    *   Enable **Cloud Firestore** in test mode.
+
+### 3️⃣ Add SHA-1 Fingerprint
+To enable Google Sign-In:
+1.  Open Terminal in Android Studio and run `./gradlew signingReport`.
+2.  Copy the **SHA-1** key from the `debug` variant.
+3.  Add this fingerprint to your App settings in the Firebase Console.
+
+### 4️⃣ Build and Install
+1.  Sync the project with Gradle files.
+2.  Connect your Android device via USB (with USB Debugging enabled).
+3.  Click **Run** in Android Studio.
+
+---
+
+## 📖 How to Use
+
+### User Registration
+1.  Select **Sign Up** on the login screen.
+2.  After entering your email and password, you **must** complete the "Details Form".
+3.  **Note:** If you press the back button before finishing the details form, the account creation will be cancelled, and you will need to start again. This ensures all users in the system have a complete profile.
 
 ---
 
 ## 📁 Project Structure
 ```
-Orphans2/
-├── app/ # Main source code
-├── build.gradle.kts # Project-level Gradle config
-├── settings.gradle.kts # Module declarations
-├── gradle/ # Gradle wrapper files
-└── local.properties # Local SDK path
-```
-
----
-
-## 🔧 Firebase Setup (Required for Authentication & Google Sign-In)
-
-### 📥 Step 1: Add `google-services.json`
-
-1. Go to [Firebase Console](https://console.firebase.google.com/).
-2. Create or select your project.
-3. Click ⚙️ **Project Settings** → **General**.
-4. Under **Your Apps**, click **Add App** → Select **Android**.
-5. Enter package name (e.g., `com.example.orphans`) and register.
-6. Download the `google-services.json` file.
-7. Place it inside:
-app/google-services.json
-
----
-
-### 🔐 Step 2: Add SHA-1 and SHA-256 Keys
-
-1. In terminal, run:
-```bash
-./gradlew signingReport
-```
-
-1.Copy SHA-1 and SHA-256 from debug variant.
-
-2.Go back to Firebase Console → Project Settings → General.
-
-3.Under your Android app, click ✎ and paste the SHA keys.
-
-4.Click Save.
-
-🔄 Re-download google-services.json after this step and replace the old file.
-
----
-
-### 🌐 Step 3: Get Web Client ID for Google Sign-In
-1.In Firebase Console → Project Settings → General.
-
-2.Scroll to Your apps → Web App (add one if needed).
-
-3.Copy the Web Client ID under OAuth 2.0 client IDs.
-
----
-
-### 🛠 Step 4: Add Web Client ID to strings.xml
-```
-<!-- app/src/main/res/values/strings.xml -->
-<string name="default_web_client_id">YOUR_WEB_CLIENT_ID</string>
+CareTogether/
+├── app/
+│   ├── src/main/java/com/example/orphans/  # Kotlin Source Code
+│   ├── src/main/res/layout/                # UI XML Files
+│   ├── src/main/res/drawable/              # App Icons & Gradients
+│   └── google-services.json                # Firebase Config
+├── build.gradle.kts                        # Build configuration
+└── gradlew.bat                             # Gradle wrapper
 ```
 ---
-
-### ⚙️ Step 5: Add Google Services Plugin
-
-In build.gradle.kts (Project-level):
-```
-classpath("com.google.gms:google-services:4.3.15") // or latest
-```
-In build.gradle.kts (App-level):
-```
-plugins {
-    id("com.android.application")
-    id("com.google.gms.google-services")
-}
-```
-Sync the project after adding.
-
+*Developed with ❤️ to support children in need.*
