@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">CareTogether</string>
 
-    <string name="default_web_client_id">"USE YOUR OWN CLIENT ID"</string>
+    <string name="default_web_client_id">386976596033-2nvt36vm0hlkd23fhsmaq8e4vsuit62o.apps.googleusercontent.com</string>
     <string-array name="user_roles">
         <item>Organization</item>
         <item>Donor</item>
